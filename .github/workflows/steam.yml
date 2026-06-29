@@ -1,0 +1,28 @@
+name: Update Steam Discord Widget
+
+on:
+  # Steam stats move slowly; hourly is plenty. Cron is UTC.
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run updater
+        env:
+          STEAM_ID: "76561199250384751"
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          DISCORD_APP_ID: ${{ secrets.DISCORD_APP_ID }}
+          DISCORD_USER_ID: ${{ secrets.DISCORD_USER_ID }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python update_steam.py
