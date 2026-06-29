@@ -22,7 +22,7 @@ jobs:
         env:
           STEAM_ID: "76561199250384751"
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
-          DISCORD_APP_ID: ${{ secrets.DISCORD_APP_ID }}
-          DISCORD_USER_ID: ${{ secrets.DISCORD_USER_ID }}
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          STEAM_DISCORD_APP_ID: ${{ secrets.STEAM_DISCORD_APP_ID }}
+          STEAM_DISCORD_USER_ID: ${{ secrets.STEAM_DISCORD_USER_ID }}
+          STEAM_DISCORD_BOT_TOKEN: ${{ secrets.STEAM_DISCORD_BOT_TOKEN }}
         run: python update_steam.py
