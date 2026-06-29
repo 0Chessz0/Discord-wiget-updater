@@ -7,11 +7,11 @@ Discord application's widget. Runs on a schedule via GitHub Actions (or
 anywhere with Python 3). No third-party dependencies.
 
 Required environment variables (set as GitHub Actions secrets):
-  STEAM_API_KEY      - free key from https://steamcommunity.com/dev/apikey
-  STEAM_ID           - SteamID64                 (default: 76561199250384751)
-  DISCORD_APP_ID     - your application ID
-  DISCORD_USER_ID    - your Discord user ID
-  DISCORD_BOT_TOKEN  - your bot token (reset it in the Bot tab to get one)
+  STEAM_API_KEY            - free key from https://steamcommunity.com/dev/apikey
+  STEAM_ID                 - SteamID64           (default: 76561199250384751)
+  STEAM_DISCORD_APP_ID     - the Steam Discord application's ID
+  STEAM_DISCORD_USER_ID    - your Discord user ID
+  STEAM_DISCORD_BOT_TOKEN  - the Steam Discord app's bot token
 
 Profile + Game Details must be set to PUBLIC on Steam, and Friends List
 public too if you want the friends count (otherwise it shows "Private").
@@ -39,9 +39,10 @@ import urllib.request
 STEAM_API_KEY = os.environ.get("STEAM_API_KEY", "")
 STEAM_ID = os.environ.get("STEAM_ID", "76561199250384751")
 
-APP_ID = os.environ.get("DISCORD_APP_ID", "")
-USER_ID = os.environ.get("DISCORD_USER_ID", "")
-BOT_TOKEN = os.environ.get("DISCORD_BOT_TOKEN", "")
+# Steam-specific Discord app (separate from the GD widget's app).
+APP_ID = os.environ.get("STEAM_DISCORD_APP_ID", "")
+USER_ID = os.environ.get("STEAM_DISCORD_USER_ID", "")
+BOT_TOKEN = os.environ.get("STEAM_DISCORD_BOT_TOKEN", "")
 
 STEAM_API = "https://api.steampowered.com"
 DISCORD_USER_AGENT = "DiscordBot (https://github.com/discord/discord-api-docs, 1.0.0)"
@@ -176,9 +177,9 @@ def push_to_discord(payload: dict) -> None:
 def main() -> int:
     missing = [n for n, v in {
         "STEAM_API_KEY": STEAM_API_KEY,
-        "DISCORD_APP_ID": APP_ID,
-        "DISCORD_USER_ID": USER_ID,
-        "DISCORD_BOT_TOKEN": BOT_TOKEN,
+        "STEAM_DISCORD_APP_ID": APP_ID,
+        "STEAM_DISCORD_USER_ID": USER_ID,
+        "STEAM_DISCORD_BOT_TOKEN": BOT_TOKEN,
     }.items() if not v]
     if missing:
         print(f"Missing required secrets: {', '.join(missing)}", file=sys.stderr)
