@@ -1,0 +1,31 @@
+name: Update Last.fm Discord Widget
+
+on:
+  # Every 5 minutes is the fastest GitHub Actions reliably allows. Note that
+  # GitHub often delays scheduled runs by 5-15+ min under load, so now-playing
+  # won't be second-accurate -- this is a cron limitation, not a bug.
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run updater
+        env:
+          # Replace with your Last.fm username (not secret, it's public):
+          LASTFM_USER: "YOUR_LASTFM_USERNAME"
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_DISCORD_APP_ID: ${{ secrets.LASTFM_DISCORD_APP_ID }}
+          LASTFM_DISCORD_USER_ID: ${{ secrets.LASTFM_DISCORD_USER_ID }}
+          LASTFM_DISCORD_BOT_TOKEN: ${{ secrets.LASTFM_DISCORD_BOT_TOKEN }}
+        run: python update_lastfm.py
