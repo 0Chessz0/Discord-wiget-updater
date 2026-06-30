@@ -23,7 +23,7 @@ jobs:
       - name: Run updater
         env:
           # Replace with your Last.fm username (not secret, it's public):
-          LASTFM_USER: "YOUR_LASTFM_USERNAME"
+          LASTFM_USER: "chessz0"
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_DISCORD_APP_ID: ${{ secrets.LASTFM_DISCORD_APP_ID }}
           LASTFM_DISCORD_USER_ID: ${{ secrets.LASTFM_DISCORD_USER_ID }}
