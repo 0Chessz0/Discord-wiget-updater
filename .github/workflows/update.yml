@@ -22,7 +22,7 @@ jobs:
 
       - name: Run updater
         env:
-          GD_USERNAME: chessz0
+          GD_USERNAME: chesszdc
           DISCORD_APP_ID: ${{ secrets.DISCORD_APP_ID }}
           DISCORD_USER_ID: ${{ secrets.DISCORD_USER_ID }}
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
