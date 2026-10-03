@@ -2,7 +2,7 @@
 """
 Geometry Dash -> Discord profile widget updater.
 
-Fetches your GD stats from the gdbrowser API and PATCHes them to your Discord
+Fetches your GD stats from the RobTop Games API and PATCHes them to your Discord
 application's widget so your profile shows live stats. Runs on a schedule via
 GitHub Actions (or anywhere with Python 3). No third-party dependencies.
 
@@ -30,6 +30,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from urllib.parse import urlencode
 
 # --------------------------------------------------------------------------
 # CONFIG
@@ -39,10 +40,9 @@ APP_ID = os.environ.get("DISCORD_APP_ID", "")
 USER_ID = os.environ.get("DISCORD_USER_ID", "")
 BOT_TOKEN = os.environ.get("DISCORD_BOT_TOKEN", "")
 
-GDBROWSER_URL = f"https://gdbrowser.com/api/profile/{GD_USERNAME}"
+# RobTop Games API endpoint for user search
+ROBTOP_SEARCH_URL = "http://boomlings.com/api/searchUsers.php"
 
-# gdbrowser blocks blank/suspicious user-agents.
-GD_USER_AGENT = "gd-discord-widget/1.0 (personal stats updater)"
 # Discord expects a DiscordBot-style UA on this endpoint.
 DISCORD_USER_AGENT = "DiscordBot (https://github.com/discord/discord-api-docs, 1.0.0)"
 
@@ -54,7 +54,7 @@ PUSH_URL = f"https://discord.com/api/v9/applications/{APP_ID}/users/{USER_ID}/id
 # --------------------------------------------------------------------------
 # One entry per DYNAMIC (User Data) field in your widget.
 #   "name"   = the field's Data Field key in the editor (must match exactly).
-#   "gd_key" = which value to read from the gdbrowser response.
+#   "gd_key" = which value to read from the RobTop API response.
 #   "type"   = 1 string | 2 number (raw int) | 3 image ({"url": ...}).
 #
 # Match "type" to how you set the field's Presentation Type in the editor:
@@ -66,7 +66,7 @@ FIELDS = [
     # comma=True formats big numbers as 12,345 (set to False for raw 12345).
     {"name": "stars",      "gd_key": "stars",     "type": 1, "comma": True},
     {"name": "moons",      "gd_key": "moons",     "type": 1, "comma": True},
-    {"name": "coins",      "gd_key": "coins",     "type": 1, "comma": True},  # secret/official coins
+    {"name": "coins",      "gd_key": "coins",     "type": 1, "comma": True},
     {"name": "user_coins", "gd_key": "userCoins", "type": 1, "comma": True},
     {"name": "demons",     "gd_key": "demons",    "type": 1, "comma": True},
     {"name": "diamonds",   "gd_key": "diamonds",  "type": 1, "comma": True},
@@ -77,16 +77,37 @@ FIELDS = [
 # --------------------------------------------------------------------------
 
 def fetch_gd_stats(username: str) -> dict:
-    req = urllib.request.Request(GDBROWSER_URL, headers={"User-Agent": GD_USER_AGENT})
+    """Fetch GD stats from RobTop Games API."""
+    params = urlencode({"str": username})
+    url = f"{ROBTOP_SEARCH_URL}?{params}"
+    
+    req = urllib.request.Request(url)
     with urllib.request.urlopen(req, timeout=30) as resp:
         raw = resp.read().decode("utf-8").strip()
-    if raw == "-1":
+    
+    if raw == "-1" or not raw:
         raise RuntimeError(
-            f"gdbrowser returned -1 for '{username}'. Check the username spelling."
+            f"RobTop API returned empty result for '{username}'. Check the username spelling."
         )
-    data = json.loads(raw)
-    if isinstance(data, dict) and data.get("error"):
-        raise RuntimeError(f"gdbrowser error: {data['error']}")
+    
+    # RobTop API returns pipe-separated values, split and parse
+    parts = raw.split(":")
+    if len(parts) < 2:
+        raise RuntimeError(f"Invalid RobTop API response format for '{username}'")
+    
+    # Parse the response into a dictionary
+    # Format: name:player_id:stars:diamonds:coins:iconType:special:demons:moons:userCoins:...
+    data = {
+        "name": parts[0],
+        "player_id": parts[1],
+        "stars": parts[2] if len(parts) > 2 else "0",
+        "diamonds": parts[3] if len(parts) > 3 else "0",
+        "coins": parts[4] if len(parts) > 4 else "0",
+        "moons": parts[7] if len(parts) > 7 else "0",
+        "demons": parts[6] if len(parts) > 6 else "0",
+        "userCoins": parts[9] if len(parts) > 9 else "0",
+    }
+    
     return data
 
 
@@ -151,10 +172,10 @@ def main() -> int:
         print(f"Missing required secrets: {', '.join(missing)}", file=sys.stderr)
         return 1
 
-    print(f"Fetching GD stats for '{GD_USERNAME}'...")
+    print(f"Fetching GD stats for '{GD_USERNAME}' from RobTop API...")
     stats = fetch_gd_stats(GD_USERNAME)
 
-    print("Raw gdbrowser response (use this to confirm your field names):")
+    print("Parsed stats:")
     print(json.dumps(stats, indent=2))
 
     payload = build_payload(stats)
